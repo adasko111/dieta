@@ -1,0 +1,9 @@
+services:
+  dieta:
+    build: .
+    image: dieta:latest
+    container_name: dieta
+    restart: unless-stopped
+    ports:
+      # Na zewnątrz 8080, w środku 80. Przed tym zwykle stoi nginx z HTTPS.
+      - "8080:80"
