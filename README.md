@@ -156,6 +156,78 @@ allow 10.0.0.0/8;
 deny all;
 ```
 
+## Praca nad aplikacją bezpośrednio na serwerze
+
+Claude Code można zainstalować na serwerze i pracować nad aplikacją na miejscu.
+Plik `CLAUDE.md` w katalogu repozytorium jest wczytywany automatycznie przy
+starcie każdej sesji, więc nowa rozmowa od razu zna architekturę, konwencje
+i znane ograniczenia projektu.
+
+### Instalacja
+
+```bash
+# Na serwerze, jako zwykły użytkownik (nie root)
+curl -fsSL https://claude.ai/install.sh | bash
+claude          # przy pierwszym uruchomieniu poprosi o zalogowanie
+```
+
+### Układ katalogów
+
+Warto rozdzielić kopię roboczą od tego, co widzi świat. Agent pracuje wtedy
+w `~/dieta`, a nginx serwuje `/var/www/dieta`, do którego trafiają wyłącznie
+przetestowane buildy:
+
+```
+~/dieta            # repozytorium — tu się pracuje i testuje
+/var/www/dieta     # to, co serwuje nginx — tylko wynik npm run build
+```
+
+Wdrożenie zmian po zakończonej pracy:
+
+```bash
+cd ~/dieta
+npm test && npm run build
+sudo cp -r dist/. /var/www/dieta/
+```
+
+Przy wariancie z Dockerem odpowiednikiem jest `docker compose up -d --build`.
+
+### Podgląd zmian na żywo
+
+Serwer deweloperski Vite ma podmianę modułów w locie, ale **nie jest
+przeznaczony do wystawiania na internet**. Trzymaj go na localhost i zaglądaj
+przez tunel SSH:
+
+```bash
+# Na serwerze
+cd ~/dieta && npm run dev
+
+# Na swoim komputerze
+ssh -L 5173:localhost:5173 uzytkownik@serwer
+# potem http://localhost:5173 w przeglądarce
+```
+
+### Sesje przeżywające rozłączenie
+
+Bez tego zamknięcie terminala przerywa pracę w połowie:
+
+```bash
+tmux new -s dieta      # nowa sesja
+# Ctrl+b, potem d      — odłączenie
+tmux attach -t dieta   # powrót
+```
+
+### O czym pamiętać
+
+- Uruchamiaj agenta jako zwykły użytkownik, nie jako root. `sudo` niech
+  zostanie wyłącznie do kopiowania buildu i przeładowania nginx.
+- Nie edytuj `/var/www/dieta` ręcznie — wszystko ma pochodzić z `npm run build`,
+  inaczej katalog rozjedzie się z repozytorium.
+- Pracuj na gałęzi i commituj — to jedyny sposób, żeby cofnąć nieudaną zmianę.
+- Historia rozmowy nie przenosi się między maszynami. Kontekst projektu niesie
+  `CLAUDE.md`, więc gdy podejmiesz jakąś trwałą decyzję (nowa konwencja,
+  świadome ograniczenie), warto ją tam dopisać.
+
 ## Struktura projektu
 
 ```
