@@ -168,8 +168,12 @@ i znane ograniczenia projektu.
 ```bash
 # Na serwerze, jako zwykły użytkownik (nie root)
 curl -fsSL https://claude.ai/install.sh | bash
-claude          # przy pierwszym uruchomieniu poprosi o zalogowanie
+cd ~/dieta && claude    # przy pierwszym uruchomieniu poprosi o zalogowanie
 ```
+
+Uruchamiaj zawsze w katalogu repozytorium — poza nim `CLAUDE.md` się nie
+wczyta i sesja nie będzie znała projektu. Gotowy prompt na start leży
+w [`docs/prompt-nowy-czat.md`](docs/prompt-nowy-czat.md).
 
 ### Układ katalogów
 
